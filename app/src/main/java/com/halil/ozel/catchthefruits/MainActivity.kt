@@ -1,19 +1,34 @@
 package com.halil.ozel.catchthefruits
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.halil.ozel.catchthefruits.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
+    protected lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
 
     private lateinit var binding: ActivityMainBinding
     var score: Int = 0
@@ -23,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        job = Job()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.catchFruits = this
@@ -43,8 +59,11 @@ class MainActivity : AppCompatActivity() {
         )
 
         hideImages()
-
         playAndRestart()
+
+
+
+
     }
 
 
@@ -70,6 +89,16 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
+        launch {
+            if (makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/consume_point?user_id=123456&point_type=lives&amount=1")) {
+                Log.i("main activity", "enough lives")
+            }
+            else {
+                Log.i("main activity", "not enough lives")
+                finish()
+            }
+        }
+
         score = 0
         binding.score = "Score : $score"
         hideImages()
@@ -113,5 +142,26 @@ class MainActivity : AppCompatActivity() {
                 binding.time = getString(R.string.time) + p0 / 1000
             }
         }.start()
+    }
+
+    suspend fun makeGetRequest(url: String) = suspendCoroutine<Boolean> {cont ->
+        Log.i("makeRequest", "start")
+        val queue = Volley.newRequestQueue(this)
+        val stringRequest = StringRequest(Request.Method.GET, url,
+                { response ->
+                    Log.i("makeRequest", response)  // Response.Listener
+                    if (response == "success") {
+                        cont.resume(true)
+                        Log.i("makeRequest", "response is success")
+                    }
+                    else {
+                        Log.i("makeRequest", "not success")
+                        cont.resume(false)
+                    }
+                },
+                { Log.i("makeRequest", "That didn't work") }  // Response.ErrorListener
+        )
+//        cont.resume(false)
+        queue.add(stringRequest)
     }
 }

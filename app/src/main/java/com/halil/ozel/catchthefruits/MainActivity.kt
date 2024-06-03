@@ -1,3 +1,9 @@
+/**
+ * This version of Catch the Fruits connects to Withings directly to get steps,
+ * and then calculate the amount of lives from those steps,
+ * saves the leftover steps (i.e. total steps % stepsPerLife) in MongoDB,
+ * saves the end_time timestamp of the Withings query in MongoDB
+ */
 package com.halil.ozel.catchthefruits
 
 import android.annotation.SuppressLint
@@ -6,14 +12,28 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import android.view.View
 import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
 import com.halil.ozel.catchthefruits.databinding.ActivityMainBinding
 import java.util.*
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
+    protected lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
 
     private lateinit var binding: ActivityMainBinding
     var score: Int = 0
@@ -22,6 +42,11 @@ class MainActivity : AppCompatActivity() {
     var runnable: Runnable = Runnable { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        job = Job()
+        launch {
+            makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/android/get_timestamp?user_id=123456")
+        }
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -70,6 +95,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
+        // Todo: Check points? Or check the amount of steps and translate that to lives right here
         score = 0
         binding.score = "Score : $score"
         hideImages()
@@ -114,4 +140,20 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
     }
+
+
+    suspend fun makeGetRequest(url: String) = suspendCoroutine<Any> {cont ->
+        Log.i("makeRequest", "start___")
+        val queue = Volley.newRequestQueue(this)
+        val stringRequest = StringRequest(Request.Method.GET, url,
+                { response ->
+                    Log.i("makeRequest", response)  // Response.Listener
+                    cont.resume(response)
+                },
+                { Log.i("makeRequest", "That didn't work") }  // Response.ErrorListener
+        )
+//        cont.resume(false)
+        queue.add(stringRequest)
+    }
+
 }

@@ -7,28 +7,23 @@
 package com.halil.ozel.catchthefruits
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.appcompat.app.AlertDialog
 import android.view.View
 import android.widget.ImageView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.halil.ozel.catchthefruits.databinding.ActivityMainBinding
-import java.util.*
-import com.android.volley.Request
-import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.Random
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
     protected lateinit var job: Job
@@ -44,13 +39,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         job = Job()
-//        launch {
-//            makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/android/get_timestamp?user_id=123456")
-//        }
 
         val withings = Withings(applicationContext)
         launch {
-            withings.getActivity()
+            val steps = withings.getActivity()
+            Log.i("Main Activity", "steps: ${steps.toString()}")
         }
 
         super.onCreate(savedInstanceState)
@@ -147,19 +140,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }.start()
     }
 
-
-    suspend fun makeGetRequest(url: String) = suspendCoroutine<Any> {cont ->
-        Log.i("makeRequest", "start___")
-        val queue = Volley.newRequestQueue(this)
-        val stringRequest = StringRequest(Request.Method.GET, url,
-                { response ->
-                    Log.i("makeRequest", response)  // Response.Listener
-                    cont.resume(response)
-                },
-                { Log.i("makeRequest", "That didn't work") }  // Response.ErrorListener
-        )
-//        cont.resume(false)
-        queue.add(stringRequest)
-    }
 
 }

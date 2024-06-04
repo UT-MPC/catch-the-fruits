@@ -15,7 +15,7 @@ class Withings(private val context: Context) {
     private val backend_url = "https://gameconnect-376617.uc.r.appspot.com"
     private val withings_url = "https://wbsapi.withings.net/v2"
 
-    suspend fun getActivity() {
+    suspend fun getActivity() : Int {
         val access_token = get_withings_access_token()
         val startdate="1712642400"
         val enddate="1712728800"
@@ -28,11 +28,13 @@ class Withings(private val context: Context) {
             Log.i("activity", "status != 0")
         }
         val steps = res.getJSONObject("body").getJSONObject("series")
-        var total_steps = 0
+        var totalSteps = 0
         for (key in steps.keys()) {
-           total_steps += (steps[key] as JSONObject).getInt("steps")
+           totalSteps += (steps[key] as JSONObject).getInt("steps")
         }
-        Log.i("activity", "total steps is $total_steps")
+        Log.i("activity", "total steps is $totalSteps")
+
+        return totalSteps
 
     }
 

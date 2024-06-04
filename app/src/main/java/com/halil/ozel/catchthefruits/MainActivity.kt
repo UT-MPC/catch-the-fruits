@@ -44,9 +44,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         job = Job()
+//        launch {
+//            makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/android/get_timestamp?user_id=123456")
+//        }
+
+        val withings = Withings(applicationContext)
         launch {
-            makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/android/get_timestamp?user_id=123456")
+            withings.getActivity()
         }
+
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 

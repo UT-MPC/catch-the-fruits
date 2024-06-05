@@ -113,6 +113,4 @@ class Withings(private val context: Context) {
         queue.add(stringRequest)
     }
 
-    // Todo: def updateStartTimestamp
-
 }

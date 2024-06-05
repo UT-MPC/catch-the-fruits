@@ -15,6 +15,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -37,41 +38,65 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     var imageArray = ArrayList<ImageView>()
     var handler: Handler = Handler(Looper.getMainLooper())
     var runnable: Runnable = Runnable { }
+    private lateinit var withings: Withings
+
+    val stepsPerLives = 1000  // get 1 life every 1000 steps
+    private var lives = 0
+    private var leftoverSteps = 0
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         job = Job()
 
-        val withings = Withings(applicationContext)
-        launch {
-            val steps = withings.getActivity() + withings.getLeftoverSteps()
-            Log.i("Main Activity", "steps: $steps")
-        }
+        withings = Withings(applicationContext)
 
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.catchFruits = this
-        binding.score = getString(R.string.score_0)
 
-        score = 0
+        launch {
+            // Todo: change the get activity to only get enough for one life
+            // Todo: and put the for loop here?
+            val steps = withings.getActivity() + withings.getLeftoverSteps()
+            Log.i("Main Activity", "steps: $steps")
+            lives = steps / stepsPerLives
+            leftoverSteps = steps % stepsPerLives
 
-        imageArray = arrayListOf(
-            binding.ivApple,
-            binding.ivBanana,
-            binding.ivCherry,
-            binding.ivGrapes,
-            binding.ivKiwi,
-            binding.ivOrange,
-            binding.ivPear,
-            binding.ivStrawberry,
-            binding.ivWatermelon
-        )
 
-        hideImages()
 
-        playAndRestart()
+            binding.score = getString(R.string.score_0)
+
+            score = 0
+
+            imageArray = arrayListOf(
+                    binding.ivApple,
+                    binding.ivBanana,
+                    binding.ivCherry,
+                    binding.ivGrapes,
+                    binding.ivKiwi,
+                    binding.ivOrange,
+                    binding.ivPear,
+                    binding.ivStrawberry,
+                    binding.ivWatermelon
+            )
+
+
+            hideImages()
+
+            playAndRestart()
+        }
+    }
+
+    override fun onStop() {
+        /**
+         * Turn leftover lives into leftover steps
+         */
+        super.onStop()  // IDE says onStop should call super. TODO: check why
+        leftoverSteps += lives * stepsPerLives
+        Log.i("onStop", "leftover steps = $leftoverSteps")
+        launch { withings.saveLeftoverSteps(steps = leftoverSteps) }
     }
 
 
@@ -97,7 +122,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
-        // Todo: Check points? Or check the amount of steps and translate that to lives right here
+        Toast.makeText(this, "$lives lives left", Toast.LENGTH_LONG).show()
+        if (lives <= 0) {
+            Toast.makeText(this, "Not enough lives, bye", Toast.LENGTH_LONG).show()
+            return
+        }
+        else {
+            lives--
+        }
         score = 0
         binding.score = "Score : $score"
         hideImages()

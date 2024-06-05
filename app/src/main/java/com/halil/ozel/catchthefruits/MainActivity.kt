@@ -7,6 +7,7 @@
 package com.halil.ozel.catchthefruits
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -14,6 +15,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     var handler: Handler = Handler(Looper.getMainLooper())
     var runnable: Runnable = Runnable { }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         job = Job()

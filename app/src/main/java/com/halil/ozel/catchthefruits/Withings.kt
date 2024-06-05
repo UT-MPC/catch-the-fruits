@@ -62,6 +62,11 @@ class Withings(private val context: Context) {
         return totalSteps
     }
 
+    suspend fun getLeftoverSteps(): Int {
+        val url = "$backend_url/android/get_leftover_steps?user_id=$user_id"
+        return makeGetRequest(url).toString().toInt()
+    }
+
     private suspend fun getActivityFromWithings(url: String, accessToken: String) = suspendCoroutine<JSONObject> { cont ->
         val queue = Volley.newRequestQueue(context)
         val jsonObjectRequest = object: JsonObjectRequest(

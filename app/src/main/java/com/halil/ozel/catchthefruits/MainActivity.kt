@@ -45,8 +45,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         val withings = Withings(applicationContext)
         launch {
-            val steps = withings.getActivity()
-            Log.i("Main Activity", "steps: ${steps.toString()}")
+            val steps = withings.getActivity() + withings.getLeftoverSteps()
+            Log.i("Main Activity", "steps: $steps")
         }
 
         super.onCreate(savedInstanceState)

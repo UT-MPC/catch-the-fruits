@@ -94,7 +94,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
          * Turn leftover lives into leftover steps
          */
         super.onStop()  // IDE says onStop should call super. TODO: check why
-        leftoverSteps += lives * stepsPerLives
+
+        // leftoverSteps was steps % stepsPerLives
+        leftoverSteps += lives * stepsPerLives  // add unused lives back
         Log.i("onStop", "leftover steps = $leftoverSteps")
         launch { withings.saveLeftoverSteps(steps = leftoverSteps) }
     }
@@ -123,11 +125,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
         Toast.makeText(this, "$lives lives left", Toast.LENGTH_LONG).show()
-        if (lives <= 0) {
+        if (lives <= 0) {  // not enough lives
             Toast.makeText(this, "Not enough lives, bye", Toast.LENGTH_LONG).show()
             return
         }
-        else {
+        else {  // deduct one life, and start playing
             lives--
         }
         score = 0

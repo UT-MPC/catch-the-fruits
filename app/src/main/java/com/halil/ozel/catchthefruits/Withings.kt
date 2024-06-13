@@ -24,29 +24,43 @@ class Withings(private val context: Context) {
     suspend fun getActivity() : Int {
         /**
          * Returns total steps between startdate and now, where
-         * startdate is the timestamp of the last seen steps
+         * startdate is the timestamp of the last seen steps, and
+         * now is the current unix timestamp
          */
         var totalSteps = 0
-        var newestKey = 0
+        var newestTimestamp = 0  // timestamp for the most recent response from Withings
         fun calculateSteps(withingsJSONObject: JSONObject) {  // parse steps from JSONObject
             val stepsJSONObject = withingsJSONObject.getJSONObject("body").getJSONObject("series")
             for (key in stepsJSONObject.keys()) {
                 totalSteps += (stepsJSONObject[key] as JSONObject).getInt("steps")
-                newestKey = max(newestKey, key.toInt())
+                newestTimestamp = max(newestTimestamp, key.toInt())
             }
         }
 
-        val accessToken = getWithingsAccessToken()
-        val now = Instant.now()
+        val accessToken = getWithingsAccessToken()  // make a GET request to the backend
+        val now = Instant.now()  // current unix timestamp
         var startInt = getActivityStartTimestamp()
         var endInt = min(now.epochSecond, Instant.ofEpochSecond(startInt.toLong()).plus(java.time.Duration.ofDays(1)).epochSecond).toInt()  // min(86400 + startdate, now)
         do {
+            /**
+             * Make requests to Withings with time ranges of at most 24 hours
+             * because the Withings API will only return the first 24 hours
+             * if startdate and enddate are more than 24 hours apart
+             *
+             * This do while terminates if
+             *  - it has gone all the way up to the current timestamp
+             *  - received an error from Withings
+             */
             val url = "$withings_url/measure?action=getintradayactivity&meastype=1&startdate=$startInt&enddate=$endInt&data_fields=steps"
             val res = getActivityFromWithings(url, accessToken)  // JSONObject
 
-            if (res.getInt("status") != 0) {  // Response status == 0 is successful, 601 is too many requests
-                Log.i("activity", "status != 0")
-                updateActivityStartTimestamp(newestKey)
+            if (res.getInt("status") != 0) {
+                /**
+                 * Response status == 0 is successful, 601 is too many requests
+                 * Save the most recent successful timestamp to the database, and
+                 * return all the steps
+                 */
+                updateActivityStartTimestamp(newestTimestamp)  // makes GET request to backend to save timestamp
                 return totalSteps
             }
 
@@ -73,11 +87,18 @@ class Withings(private val context: Context) {
     }
 
     private suspend fun getActivityFromWithings(url: String, accessToken: String) = suspendCoroutine<JSONObject> { cont ->
+        /**
+         * This function makes a POST request.
+         * The cURL equivalent is:
+         * curl --location --request POST $url \
+         * --header 'Authorization: Bearer $accessToken'
+         * In this programming task, it is used to get intra day activity from Withings
+         */
         val queue = Volley.newRequestQueue(context)
         val jsonObjectRequest = object: JsonObjectRequest(
                 Request.Method.POST, url, null,
-                {response -> Log.i("Volley", "Response: $response")
-                    cont.resume(response)
+                {response -> // Listener
+                    cont.resume(response)  // returns the response. In this case, its type is a JSONObject
                 },
                 { error -> Log.i("Volley", "Error: $error")}
         ) {

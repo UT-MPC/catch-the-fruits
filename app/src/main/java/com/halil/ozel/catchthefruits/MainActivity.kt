@@ -1,3 +1,6 @@
+/**
+ * This version of Catch the Fruits connects to the Game Connect APIs
+ */
 package com.halil.ozel.catchthefruits
 
 import android.annotation.SuppressLint
@@ -42,26 +45,35 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.catchFruits = this
-        binding.score = getString(R.string.score_0)
 
-        score = 0
+        launch {
+            if (makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/consume_point?user_id=123456&point_type=lives&amount=1")) {
+                Log.i("main activity", "enough lives")
+            }
+            else {
+                Log.i("main activity", "not enough lives")
+                finish()
+            }
+            binding.score = getString(R.string.score_0)
 
-        imageArray = arrayListOf(
-            binding.ivApple,
-            binding.ivBanana,
-            binding.ivCherry,
-            binding.ivGrapes,
-            binding.ivKiwi,
-            binding.ivOrange,
-            binding.ivPear,
-            binding.ivStrawberry,
-            binding.ivWatermelon
-        )
+            score = 0
 
-        hideImages()
-        playAndRestart()
+            imageArray = arrayListOf(
+                    binding.ivApple,
+                    binding.ivBanana,
+                    binding.ivCherry,
+                    binding.ivGrapes,
+                    binding.ivKiwi,
+                    binding.ivOrange,
+                    binding.ivPear,
+                    binding.ivStrawberry,
+                    binding.ivWatermelon
+            )
 
+            hideImages()
+            playAndRestart()
 
+        }
 
 
     }
@@ -89,15 +101,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
-        launch {
-            if (makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/consume_point?user_id=123456&point_type=lives&amount=1")) {
-                Log.i("main activity", "enough lives")
-            }
-            else {
-                Log.i("main activity", "not enough lives")
-                finish()
-            }
-        }
 
         score = 0
         binding.score = "Score : $score"

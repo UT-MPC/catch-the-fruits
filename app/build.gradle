@@ -6,7 +6,7 @@ apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 33
     defaultConfig {
-        applicationId "com.halil.ozel.catchthefruits"
+        applicationId "com.halil.ozel.catchthefruits_gc"
         minSdkVersion 21
         targetSdkVersion 33
         versionCode 1

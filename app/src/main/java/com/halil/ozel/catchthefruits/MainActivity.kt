@@ -44,7 +44,9 @@ class MainActivity : AppCompatActivity() {
 
         hideImages()
 
-        playAndRestart()
+        var seconds = 15
+
+        playAndRestart(seconds.toLong())
     }
 
 
@@ -69,17 +71,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    fun playAndRestart() {
+    fun playAndRestart(seconds: Long = 10) {
         score = 0
         binding.score = "Score : $score"
         hideImages()
-        binding.time = "Time : " + 10000 / 1000
+        binding.time = "Time : " + seconds
 
         for (image in imageArray) {
             image.visibility = View.INVISIBLE
         }
 
-        object : CountDownTimer(10000, 1000) {
+        object : CountDownTimer(seconds * 1000, 1000) {
             @SuppressLint("SetTextI18n")
             override fun onFinish() {
                 binding.time = "Time's up!!!"
@@ -88,21 +90,21 @@ class MainActivity : AppCompatActivity() {
                 val dialog = AlertDialog.Builder(this@MainActivity).apply {
                     setCancelable(false)
                     setTitle(getString(R.string.game_name))
-                    setMessage("Your score : $score\nWould you like play again?")
+                    setMessage("Your score : $score\n")
                 }
-                dialog.setPositiveButton(getString(R.string.yes)) { _, _ ->
-                    playAndRestart()
-                }
-                    .setNegativeButton(getString(R.string.no)) { _, _ ->
-                        score = 0
-                        ("Score : $score").apply { binding.score = this }
-                        ("Time : " + "0").apply { binding.time = this }
-
-                        for (image in imageArray) {
-                            image.visibility = View.INVISIBLE
-                        }
-                        finish()
-                    }
+//                dialog.setPositiveButton(getString(R.string.yes)) { _, _ ->
+//                    playAndRestart()
+//                }
+//                    .setNegativeButton(getString(R.string.no)) { _, _ ->
+//                        score = 0
+//                        ("Score : $score").apply { binding.score = this }
+//                        ("Time : " + "0").apply { binding.time = this }
+//
+//                        for (image in imageArray) {
+//                            image.visibility = View.INVISIBLE
+//                        }
+//                        finish()
+//                    }
                  dialog.create().apply {
                     show()
                 }

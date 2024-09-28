@@ -87,49 +87,55 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     @SuppressLint("SetTextI18n")
     fun playAndRestart() {
-        score = 0
-        binding.score = "Score : $score"
-        hideImages()
-        binding.time = "Time : " + 10000 / 1000
+        launch {
+            if (!makeGetRequest("https://gameconnect-376617.uc.r.appspot.com/consume_point?user_id=123456&point_type=lives&amount=1")) {
+                finish()
+            }
+            score = 0
+            binding.score = "Score : $score"
+            hideImages()
+            binding.time = "Time : " + 10000 / 1000
 
-        for (image in imageArray) {
-            image.visibility = View.INVISIBLE
-        }
+            for (image in imageArray) {
+                image.visibility = View.INVISIBLE
+            }
 
-        object : CountDownTimer(10000, 1000) {
-            @SuppressLint("SetTextI18n")
-            override fun onFinish() {
-                binding.time = "Time's up!!!"
-                handler.removeCallbacks(runnable)
 
-                val dialog = AlertDialog.Builder(this@MainActivity).apply {
-                    setCancelable(false)
-                    setTitle(getString(R.string.game_name))
-                    setMessage("Your score : $score\nWould you like play again?")
-                }
-                dialog.setPositiveButton(getString(R.string.yes)) { _, _ ->
-                    playAndRestart()
-                }
-                    .setNegativeButton(getString(R.string.no)) { _, _ ->
-                        score = 0
-                        ("Score : $score").apply { binding.score = this }
-                        ("Time : " + "0").apply { binding.time = this }
+            object : CountDownTimer(10000, 1000) {
+                @SuppressLint("SetTextI18n")
+                override fun onFinish() {
+                    binding.time = "Time's up!!!"
+                    handler.removeCallbacks(runnable)
 
-                        for (image in imageArray) {
-                            image.visibility = View.INVISIBLE
-                        }
-                        finish()
+                    val dialog = AlertDialog.Builder(this@MainActivity).apply {
+                        setCancelable(false)
+                        setTitle(getString(R.string.game_name))
+                        setMessage("Your score : $score\nWould you like play again?")
                     }
-                 dialog.create().apply {
-                    show()
-                }
-            }
+                    dialog.setPositiveButton(getString(R.string.yes)) { _, _ ->
+                        playAndRestart()
+                    }
+                            .setNegativeButton(getString(R.string.no)) { _, _ ->
+                                score = 0
+                                ("Score : $score").apply { binding.score = this }
+                                ("Time : " + "0").apply { binding.time = this }
 
-            @SuppressLint("SetTextI18n")
-            override fun onTick(p0: Long) {
-                binding.time = getString(R.string.time) + p0 / 1000
-            }
-        }.start()
+                                for (image in imageArray) {
+                                    image.visibility = View.INVISIBLE
+                                }
+                                finish()
+                            }
+                    dialog.create().apply {
+                        show()
+                    }
+                }
+
+                @SuppressLint("SetTextI18n")
+                override fun onTick(p0: Long) {
+                    binding.time = getString(R.string.time) + p0 / 1000
+                }
+            }.start()
+        }
     }
     suspend fun makeGetRequest(url: String) = suspendCoroutine<Boolean> {cont ->
         Log.i("makeRequest", "start")

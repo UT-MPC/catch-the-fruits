@@ -11,11 +11,20 @@ import android.view.View
 import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
 import com.halil.ozel.catchthefruits.databinding.ActivityMainBinding
+import java.util.*
+import kotlin.coroutines.suspendCoroutine
+
+import android.util.Log
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import java.util.*
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
     protected lateinit var job: Job
@@ -121,5 +130,25 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 binding.time = getString(R.string.time) + p0 / 1000
             }
         }.start()
+    }
+    suspend fun makeGetRequest(url: String) = suspendCoroutine<Boolean> {cont ->
+        Log.i("makeRequest", "start")
+        val queue = Volley.newRequestQueue(this)
+        val stringRequest = StringRequest(Request.Method.GET, url,
+                { response ->
+                    Log.i("makeRequest", response)  // Response.Listener
+                    if (response == "success") {
+                        cont.resume(true)
+                        Log.i("makeRequest", "response is success")
+                    }
+                    else {
+                        Log.i("makeRequest", "not success")
+                        cont.resume(false)
+                    }
+                },
+                { Log.i("makeRequest", "That didn't work") }  // Response.ErrorListener
+        )
+
+        queue.add(stringRequest)
     }
 }

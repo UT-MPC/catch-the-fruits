@@ -11,9 +11,16 @@ import android.view.View
 import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
 import com.halil.ozel.catchthefruits.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
+    protected lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Main
 
     private lateinit var binding: ActivityMainBinding
     var score: Int = 0
@@ -23,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        job = Job()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.catchFruits = this

@@ -16,6 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import java.util.*
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.launch
+import androidx.annotation.RequiresApi
+import android.os.Build
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
     protected lateinit var job: Job
